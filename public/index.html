@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imposter Game</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo">IMPOSTER</h1>
+    <p class="subtitle">Find the one who doesn't know the word</p>
+
+    <div class="card" id="create-section">
+      <h2>Create a Game</h2>
+      <input type="text" id="host-name" placeholder="Your name" maxlength="20" autocomplete="off">
+      <button id="create-btn" class="btn btn-primary">Create Game</button>
+    </div>
+
+    <div class="divider"><span>OR</span></div>
+
+    <div class="card" id="join-section">
+      <h2>Join a Game</h2>
+      <input type="text" id="join-name" placeholder="Your name" maxlength="20" autocomplete="off">
+      <input type="text" id="join-code" placeholder="Room code (e.g. ABCD)" maxlength="4" autocomplete="off" style="text-transform:uppercase">
+      <button id="join-btn" class="btn btn-secondary">Join Game</button>
+    </div>
+
+    <p id="error-msg" class="error" hidden></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/home.js"></script>
+</body>
+</html>

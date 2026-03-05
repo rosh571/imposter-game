@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game - Imposter Game</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo logo-sm">IMPOSTER</h1>
+
+    <!-- Role Card -->
+    <div id="role-card" class="card role-card">
+      <p class="label" id="role-label">Your Role</p>
+      <div id="role-word" class="role-word"></div>
+      <p id="role-hint" class="hint"></p>
+    </div>
+
+    <!-- Voting Section -->
+    <div class="card" id="vote-section">
+      <h2>Vote for the Imposter</h2>
+      <p class="hint">Discuss with your group, then vote!</p>
+      <div id="vote-buttons" class="vote-buttons"></div>
+    </div>
+
+    <!-- Host Controls -->
+    <div id="host-controls" hidden>
+      <button id="reveal-btn" class="btn btn-danger btn-large">Reveal Imposter</button>
+    </div>
+
+    <!-- Reveal Overlay -->
+    <div id="reveal-overlay" class="overlay" hidden>
+      <div class="reveal-card">
+        <h2 id="reveal-result" class="reveal-result"></h2>
+        <div class="reveal-details">
+          <p>The imposter was: <strong id="reveal-name"></strong></p>
+          <p>The word was: <strong id="reveal-word"></strong></p>
+        </div>
+        <div id="vote-summary" class="vote-summary"></div>
+        <button id="new-round-btn" class="btn btn-primary btn-large" hidden>New Round</button>
+        <p id="reveal-wait" class="hint">Waiting for host...</p>
+      </div>
+    </div>
+
+    <p id="error-msg" class="error" hidden></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/game.js"></script>
+</body>
+</html>

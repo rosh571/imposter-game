@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lobby - Imposter Game</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo logo-sm">IMPOSTER</h1>
+
+    <div class="card">
+      <p class="label">Room Code</p>
+      <div class="room-code" id="room-code">----</div>
+      <button id="copy-link-btn" class="btn btn-small">Copy Invite Link</button>
+      <p id="copy-feedback" class="feedback" hidden>Copied!</p>
+    </div>
+
+    <div class="card">
+      <h2>Players <span id="player-count">(0)</span></h2>
+      <ul id="player-list" class="player-list"></ul>
+    </div>
+
+    <div id="host-controls" hidden>
+      <button id="start-btn" class="btn btn-primary btn-large">Start Game</button>
+      <p class="hint">Need at least 3 players</p>
+    </div>
+
+    <p id="waiting-msg" class="hint">Waiting for host to start...</p>
+    <p id="error-msg" class="error" hidden></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/lobby.js"></script>
+</body>
+</html>
