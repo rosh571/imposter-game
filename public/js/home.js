@@ -35,8 +35,12 @@ if (savedRoom && savedName) {
 createBtn.addEventListener('click', () => {
   const name = hostNameInput.value.trim();
   if (!name) return showError('Please enter your name.');
+  // Fresh game — new identity so old room data doesn't interfere
+  sessionStorage.removeItem('imposter-room');
+  const newPid = crypto.randomUUID();
+  sessionStorage.setItem('imposter-pid', newPid);
   sessionStorage.setItem('imposter-name', name);
-  socket.emit('create-room', { pid, name });
+  socket.emit('create-room', { pid: newPid, name });
 });
 
 joinBtn.addEventListener('click', () => {
@@ -44,8 +48,12 @@ joinBtn.addEventListener('click', () => {
   const code = joinCodeInput.value.trim().toUpperCase();
   if (!name) return showError('Please enter your name.');
   if (!code || code.length !== 4) return showError('Please enter a 4-letter room code.');
+  // Fresh join — new identity
+  sessionStorage.removeItem('imposter-room');
+  const newPid = crypto.randomUUID();
+  sessionStorage.setItem('imposter-pid', newPid);
   sessionStorage.setItem('imposter-name', name);
-  socket.emit('join-room', { pid, code, name });
+  socket.emit('join-room', { pid: newPid, code, name });
 });
 
 // Enter key support

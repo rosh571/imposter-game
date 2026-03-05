@@ -57,6 +57,8 @@ socket.on('vote-update', (tallies) => {
 });
 
 socket.on('imposter-revealed', ({ imposterId, imposterName, word, caughtImposter, tallies }) => {
+  // Guard against empty/invalid reveal data
+  if (!imposterName || !word) return;
   revealOverlay.hidden = false;
 
   if (caughtImposter) {
