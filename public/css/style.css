@@ -312,12 +312,15 @@ input[type="text"]::placeholder {
   position: fixed;
   inset: 0;
   background: rgba(10, 10, 20, 0.92);
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   padding: 20px;
   z-index: 100;
   animation: fadeIn 0.3s;
+}
+.overlay.visible {
+  display: flex;
 }
 
 @keyframes fadeIn {
