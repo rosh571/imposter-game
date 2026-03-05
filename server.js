@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
@@ -9,7 +10,6 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Shareable join link
 app.get('/join/:code', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -48,19 +48,26 @@ function pickWord(room) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function getPlayer(room, pid) {
+  return room.players.find(p => p.id === pid);
+}
+
 function broadcastPlayerList(room) {
   io.to(room.code).emit('player-list', room.players.map(p => ({
     id: p.id,
     name: p.name,
-    isHost: p.isHost
+    isHost: p.id === room.hostId
   })));
 }
 
-function promoteNewHost(room) {
-  if (room.players.length === 0) return;
-  room.players[0].isHost = true;
-  room.hostSocketId = room.players[0].socketId;
-  broadcastPlayerList(room);
+function sendRoleToPlayer(room, player) {
+  const sock = io.sockets.sockets.get(player.socketId);
+  if (!sock) return;
+  if (player.id === room.imposterId) {
+    sock.emit('role-assigned', { role: 'imposter', word: null });
+  } else {
+    sock.emit('role-assigned', { role: 'normal', word: room.currentWord });
+  }
 }
 
 // Cleanup stale rooms every 5 minutes
@@ -77,18 +84,21 @@ setInterval(() => {
 // ── Socket.io ──────────────────────────────────────────────
 io.on('connection', (socket) => {
 
-  socket.on('create-room', (name) => {
+  // Every event from the client includes a stable `pid` (client-generated UUID)
+  // This decouples identity from the volatile socket.id
+
+  socket.on('create-room', ({ pid, name }) => {
     if (!name || typeof name !== 'string') return socket.emit('error', 'Name is required.');
     name = name.trim().slice(0, 20);
     if (!name) return socket.emit('error', 'Name is required.');
+    if (!pid) return socket.emit('error', 'Missing player ID.');
 
     const code = generateCode();
-    const playerId = socket.id;
     const room = {
       code,
       state: 'LOBBY',
-      hostSocketId: socket.id,
-      players: [{ id: playerId, name, isHost: true, socketId: socket.id }],
+      hostId: pid,
+      players: [{ id: pid, name, socketId: socket.id }],
       imposterId: null,
       currentWord: null,
       votes: {},
@@ -97,14 +107,15 @@ io.on('connection', (socket) => {
     };
     rooms.set(code, room);
     socket.join(code);
+    socket.pid = pid;
     socket.roomCode = code;
-    socket.playerId = playerId;
 
-    socket.emit('room-created', { code, playerId });
+    socket.emit('room-created', { code });
     broadcastPlayerList(room);
   });
 
-  socket.on('join-room', ({ code, name, reconnectId }) => {
+  socket.on('join-room', ({ pid, code, name }) => {
+    if (!pid) return socket.emit('error', 'Missing player ID.');
     if (!name || typeof name !== 'string') return socket.emit('error', 'Name is required.');
     name = name.trim().slice(0, 20);
     if (!name) return socket.emit('error', 'Name is required.');
@@ -114,57 +125,63 @@ io.on('connection', (socket) => {
     const room = rooms.get(code);
     if (!room) return socket.emit('error', 'Room not found.');
 
-    // Reconnection
-    if (reconnectId) {
-      const existing = room.players.find(p => p.id === reconnectId);
-      if (existing) {
-        existing.socketId = socket.id;
-        delete existing.disconnectedAt;
-        if (existing.isHost) {
-          room.hostSocketId = socket.id;
-        }
-        socket.join(code);
-        socket.roomCode = code;
-        socket.playerId = existing.id;
-        room.lastActivity = Date.now();
-        broadcastPlayerList(room);
+    // Reconnection — player already in room
+    const existing = getPlayer(room, pid);
+    if (existing) {
+      existing.socketId = socket.id;
+      delete existing.disconnectedAt;
+      socket.join(code);
+      socket.pid = pid;
+      socket.roomCode = code;
+      room.lastActivity = Date.now();
 
-        // If game is in progress, resend role
-        if (room.state === 'PLAYING') {
-          if (existing.id === room.imposterId) {
-            socket.emit('role-assigned', { role: 'imposter', word: null, playerCount: room.players.length });
-          } else {
-            socket.emit('role-assigned', { role: 'normal', word: room.currentWord, playerCount: room.players.length });
-          }
-          // Resend current vote tallies
-          socket.emit('vote-update', computeVoteTallies(room));
+      socket.emit('joined-room', { code, state: room.state });
+      broadcastPlayerList(room);
+
+      // Resend game state if in progress
+      if (room.state === 'PLAYING') {
+        sendRoleToPlayer(room, existing);
+        socket.emit('vote-update', computeVoteTallies(room));
+      } else if (room.state === 'REVEAL') {
+        // Resend reveal data
+        const imposter = getPlayer(room, room.imposterId);
+        const tallies = computeVoteTallies(room);
+        let maxVotes = 0, mostVotedId = null;
+        for (const [id, count] of Object.entries(tallies)) {
+          if (count > maxVotes) { maxVotes = count; mostVotedId = id; }
         }
-        socket.emit('joined-room', { code, playerId: existing.id, state: room.state });
-        return;
+        socket.emit('imposter-revealed', {
+          imposterId: room.imposterId,
+          imposterName: imposter ? imposter.name : 'Unknown',
+          word: room.currentWord,
+          caughtImposter: mostVotedId === room.imposterId,
+          tallies
+        });
       }
+      return;
     }
 
+    // New player joining
     if (room.state !== 'LOBBY') return socket.emit('error', 'Game is already in progress.');
     if (room.players.length >= 20) return socket.emit('error', 'Room is full.');
     if (room.players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
       return socket.emit('error', 'That name is already taken.');
     }
 
-    const playerId = socket.id;
-    room.players.push({ id: playerId, name, isHost: false, socketId: socket.id });
+    room.players.push({ id: pid, name, socketId: socket.id });
     socket.join(code);
+    socket.pid = pid;
     socket.roomCode = code;
-    socket.playerId = playerId;
     room.lastActivity = Date.now();
 
-    socket.emit('joined-room', { code, playerId, state: room.state });
+    socket.emit('joined-room', { code, state: room.state });
     broadcastPlayerList(room);
   });
 
   socket.on('start-game', () => {
     const room = rooms.get(socket.roomCode);
     if (!room) return socket.emit('error', 'Room not found.');
-    if (room.hostSocketId !== socket.id) return socket.emit('error', 'Only the host can start the game.');
+    if (room.hostId !== socket.pid) return socket.emit('error', 'Only the host can start the game.');
     if (room.players.length < 3) return socket.emit('error', 'Need at least 3 players to start.');
 
     room.state = 'PLAYING';
@@ -180,13 +197,7 @@ io.on('connection', (socket) => {
 
     // Send roles individually
     for (const player of room.players) {
-      const target = io.sockets.sockets.get(player.socketId);
-      if (!target) continue;
-      if (player.id === room.imposterId) {
-        target.emit('role-assigned', { role: 'imposter', word: null, playerCount: room.players.length });
-      } else {
-        target.emit('role-assigned', { role: 'normal', word, playerCount: room.players.length });
-      }
+      sendRoleToPlayer(room, player);
     }
 
     io.to(room.code).emit('game-started');
@@ -194,12 +205,11 @@ io.on('connection', (socket) => {
 
   socket.on('cast-vote', (targetId) => {
     const room = rooms.get(socket.roomCode);
-    if (!room) return;
-    if (room.state !== 'PLAYING') return;
-    if (!room.players.find(p => p.id === targetId)) return;
-    if (targetId === socket.playerId) return socket.emit('error', 'You cannot vote for yourself.');
+    if (!room || room.state !== 'PLAYING') return;
+    if (!getPlayer(room, targetId)) return;
+    if (targetId === socket.pid) return socket.emit('error', 'You cannot vote for yourself.');
 
-    room.votes[socket.playerId] = targetId;
+    room.votes[socket.pid] = targetId;
     room.lastActivity = Date.now();
 
     io.to(room.code).emit('vote-update', computeVoteTallies(room));
@@ -208,32 +218,25 @@ io.on('connection', (socket) => {
   socket.on('reveal-imposter', () => {
     const room = rooms.get(socket.roomCode);
     if (!room) return;
-    if (room.hostSocketId !== socket.id) return socket.emit('error', 'Only the host can reveal.');
+    if (room.hostId !== socket.pid) return socket.emit('error', 'Only the host can reveal.');
     if (room.state !== 'PLAYING') return;
 
     room.state = 'REVEAL';
     room.lastActivity = Date.now();
 
-    const imposter = room.players.find(p => p.id === room.imposterId);
+    const imposter = getPlayer(room, room.imposterId);
     const tallies = computeVoteTallies(room);
 
-    // Determine who got the most votes
-    let maxVotes = 0;
-    let mostVotedId = null;
+    let maxVotes = 0, mostVotedId = null;
     for (const [id, count] of Object.entries(tallies)) {
-      if (count > maxVotes) {
-        maxVotes = count;
-        mostVotedId = id;
-      }
+      if (count > maxVotes) { maxVotes = count; mostVotedId = id; }
     }
-
-    const caughtImposter = mostVotedId === room.imposterId;
 
     io.to(room.code).emit('imposter-revealed', {
       imposterId: room.imposterId,
       imposterName: imposter ? imposter.name : 'Unknown',
       word: room.currentWord,
-      caughtImposter,
+      caughtImposter: mostVotedId === room.imposterId,
       tallies
     });
   });
@@ -241,7 +244,7 @@ io.on('connection', (socket) => {
   socket.on('new-round', () => {
     const room = rooms.get(socket.roomCode);
     if (!room) return;
-    if (room.hostSocketId !== socket.id) return socket.emit('error', 'Only the host can start a new round.');
+    if (room.hostId !== socket.pid) return socket.emit('error', 'Only the host can start a new round.');
 
     room.state = 'LOBBY';
     room.imposterId = null;
@@ -256,34 +259,32 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const room = rooms.get(socket.roomCode);
     if (!room) return;
-    const playerId = socket.playerId;
+    const pid = socket.pid;
 
-    // Grace period — allow reconnection during page navigation
-    const player = room.players.find(p => p.id === playerId);
-    if (player) {
-      player.disconnectedAt = Date.now();
-    }
+    const player = getPlayer(room, pid);
+    if (player) player.disconnectedAt = Date.now();
 
     setTimeout(() => {
       const room = rooms.get(socket.roomCode);
       if (!room) return;
-      const player = room.players.find(p => p.id === playerId);
-      // If player reconnected (socketId changed), don't remove
-      if (!player || player.socketId !== socket.id) return;
-      // If still disconnected after grace period, remove
-      if (!player.disconnectedAt) return;
+      const player = getPlayer(room, pid);
+      if (!player || !player.disconnectedAt) return;
+      // If player reconnected with a new socket, don't remove
+      if (player.socketId !== socket.id) return;
 
-      const wasHost = room.hostSocketId === socket.id;
-      room.players = room.players.filter(p => p.id !== playerId);
+      const wasHost = room.hostId === pid;
+      room.players = room.players.filter(p => p.id !== pid);
 
       if (room.players.length === 0) {
         rooms.delete(socket.roomCode);
         return;
       }
 
-      if (wasHost) promoteNewHost(room);
+      if (wasHost) {
+        room.hostId = room.players[0].id;
+      }
       broadcastPlayerList(room);
-    }, 5000);
+    }, 8000);
   });
 });
 

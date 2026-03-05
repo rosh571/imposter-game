@@ -10,28 +10,23 @@ const copyLinkBtn = document.getElementById('copy-link-btn');
 const copyFeedback = document.getElementById('copy-feedback');
 const errorMsg = document.getElementById('error-msg');
 
+const pid = sessionStorage.getItem('imposter-pid');
 const roomCode = sessionStorage.getItem('imposter-room');
-const playerId = sessionStorage.getItem('imposter-player');
 const playerName = sessionStorage.getItem('imposter-name');
 
-if (!roomCode || !playerId) {
+if (!roomCode || !pid || !playerName) {
   window.location.href = '/';
 }
 
 roomCodeEl.textContent = roomCode;
 
 // Reconnect to room
-socket.emit('join-room', { code: roomCode, name: playerName, reconnectId: playerId });
-
-socket.on('joined-room', ({ code, playerId: newId }) => {
-  sessionStorage.setItem('imposter-player', newId);
-});
+socket.emit('join-room', { pid, code: roomCode, name: playerName });
 
 socket.on('player-list', (players) => {
   playerCountEl.textContent = `(${players.length})`;
   playerListEl.innerHTML = '';
 
-  const myId = sessionStorage.getItem('imposter-player');
   let isHost = false;
 
   players.forEach(p => {
@@ -39,9 +34,9 @@ socket.on('player-list', (players) => {
     li.textContent = p.name;
     if (p.isHost) {
       li.innerHTML += ' <span class="badge badge-host">HOST</span>';
-      if (p.id === myId) isHost = true;
+      if (p.id === pid) isHost = true;
     }
-    if (p.id === myId) {
+    if (p.id === pid) {
       li.innerHTML += ' <span class="badge badge-you">YOU</span>';
     }
     playerListEl.appendChild(li);
@@ -67,7 +62,6 @@ copyLinkBtn.addEventListener('click', () => {
     copyFeedback.hidden = false;
     setTimeout(() => { copyFeedback.hidden = true; }, 2000);
   }).catch(() => {
-    // Fallback
     prompt('Copy this link:', link);
   });
 });
@@ -77,7 +71,7 @@ socket.on('game-started', () => {
 });
 
 socket.on('round-reset', () => {
-  // Already on lobby, just refresh player list
+  // Already on lobby
 });
 
 socket.on('error', (msg) => {

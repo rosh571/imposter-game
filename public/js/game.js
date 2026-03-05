@@ -16,42 +16,38 @@ const newRoundBtn = document.getElementById('new-round-btn');
 const revealWait = document.getElementById('reveal-wait');
 const errorMsg = document.getElementById('error-msg');
 
+const pid = sessionStorage.getItem('imposter-pid');
 const roomCode = sessionStorage.getItem('imposter-room');
 const playerName = sessionStorage.getItem('imposter-name');
-let myPlayerId = sessionStorage.getItem('imposter-player');
+
 let players = [];
 let myVote = null;
 let isHost = false;
 
-if (!roomCode || !myPlayerId) {
+if (!roomCode || !pid || !playerName) {
   window.location.href = '/';
 }
 
-// Reconnect
-socket.emit('join-room', { code: roomCode, name: playerName, reconnectId: myPlayerId });
+// Reconnect to room — server will resend role + game state
+socket.emit('join-room', { pid, code: roomCode, name: playerName });
 
-socket.on('joined-room', ({ playerId: newId }) => {
-  myPlayerId = newId;
-  sessionStorage.setItem('imposter-player', newId);
-});
-
-socket.on('role-assigned', ({ role, word, playerCount }) => {
+socket.on('role-assigned', ({ role, word }) => {
   if (role === 'imposter') {
     roleCard.classList.add('imposter');
     roleLabel.textContent = 'You are the';
     roleWord.textContent = 'IMPOSTER';
-    roleHint.textContent = 'You don\'t know the word. Blend in!';
+    roleHint.textContent = "You don't know the word. Blend in!";
   } else {
     roleCard.classList.remove('imposter');
     roleLabel.textContent = 'The secret word is';
     roleWord.textContent = word.toUpperCase();
-    roleHint.textContent = 'Find who doesn\'t know this word!';
+    roleHint.textContent = "Find who doesn't know this word!";
   }
 });
 
 socket.on('player-list', (playerList) => {
   players = playerList;
-  isHost = players.find(p => p.id === myPlayerId)?.isHost || false;
+  isHost = players.find(p => p.id === pid)?.isHost || false;
   hostControls.hidden = !isHost;
   renderVoteButtons();
 });
@@ -99,7 +95,7 @@ socket.on('round-reset', () => {
 });
 
 socket.on('game-started', () => {
-  // In case we get this while already on game page, just ignore
+  // Already on game page
 });
 
 revealBtn.addEventListener('click', () => {
@@ -119,7 +115,7 @@ socket.on('error', (msg) => {
 function renderVoteButtons(tallies = {}) {
   voteButtons.innerHTML = '';
   players.forEach(p => {
-    if (p.id === myPlayerId) return; // Can't vote for yourself
+    if (p.id === pid) return; // Can't vote for yourself
     const btn = document.createElement('button');
     const votes = tallies[p.id] || 0;
     btn.className = 'vote-btn' + (myVote === p.id ? ' voted' : '');

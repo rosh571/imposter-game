@@ -7,6 +7,17 @@ const createBtn = document.getElementById('create-btn');
 const joinBtn = document.getElementById('join-btn');
 const errorMsg = document.getElementById('error-msg');
 
+// Stable player ID — persists across page navigations
+function getPlayerId() {
+  let pid = sessionStorage.getItem('imposter-pid');
+  if (!pid) {
+    pid = crypto.randomUUID();
+    sessionStorage.setItem('imposter-pid', pid);
+  }
+  return pid;
+}
+const pid = getPlayerId();
+
 // Check if arriving via /join/:code link
 const pathMatch = window.location.pathname.match(/^\/join\/([A-Za-z]{4})$/);
 if (pathMatch) {
@@ -14,18 +25,18 @@ if (pathMatch) {
   joinNameInput.focus();
 }
 
-// Check for reconnection
+// Check for reconnection (already in a room)
 const savedRoom = sessionStorage.getItem('imposter-room');
-const savedPlayer = sessionStorage.getItem('imposter-player');
-if (savedRoom && savedPlayer) {
-  const name = sessionStorage.getItem('imposter-name') || 'Player';
-  socket.emit('join-room', { code: savedRoom, name, reconnectId: savedPlayer });
+const savedName = sessionStorage.getItem('imposter-name');
+if (savedRoom && savedName) {
+  socket.emit('join-room', { pid, code: savedRoom, name: savedName });
 }
 
 createBtn.addEventListener('click', () => {
   const name = hostNameInput.value.trim();
   if (!name) return showError('Please enter your name.');
-  socket.emit('create-room', name);
+  sessionStorage.setItem('imposter-name', name);
+  socket.emit('create-room', { pid, name });
 });
 
 joinBtn.addEventListener('click', () => {
@@ -33,7 +44,8 @@ joinBtn.addEventListener('click', () => {
   const code = joinCodeInput.value.trim().toUpperCase();
   if (!name) return showError('Please enter your name.');
   if (!code || code.length !== 4) return showError('Please enter a 4-letter room code.');
-  socket.emit('join-room', { code, name });
+  sessionStorage.setItem('imposter-name', name);
+  socket.emit('join-room', { pid, code, name });
 });
 
 // Enter key support
@@ -46,15 +58,14 @@ joinNameInput.addEventListener('keydown', (e) => {
   }
 });
 
-socket.on('room-created', ({ code, playerId }) => {
-  saveSession(code, playerId, hostNameInput.value.trim());
+socket.on('room-created', ({ code }) => {
+  sessionStorage.setItem('imposter-room', code);
   window.location.href = '/lobby.html';
 });
 
-socket.on('joined-room', ({ code, playerId, state }) => {
-  const name = joinNameInput.value.trim() || hostNameInput.value.trim() || sessionStorage.getItem('imposter-name');
-  saveSession(code, playerId, name);
-  if (state === 'PLAYING') {
+socket.on('joined-room', ({ code, state }) => {
+  sessionStorage.setItem('imposter-room', code);
+  if (state === 'PLAYING' || state === 'REVEAL') {
     window.location.href = '/game.html';
   } else {
     window.location.href = '/lobby.html';
@@ -62,12 +73,6 @@ socket.on('joined-room', ({ code, playerId, state }) => {
 });
 
 socket.on('error', (msg) => showError(msg));
-
-function saveSession(code, playerId, name) {
-  sessionStorage.setItem('imposter-room', code);
-  sessionStorage.setItem('imposter-player', playerId);
-  sessionStorage.setItem('imposter-name', name);
-}
 
 function showError(msg) {
   errorMsg.textContent = msg;
