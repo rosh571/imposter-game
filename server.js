@@ -120,6 +120,9 @@ io.on('connection', (socket) => {
       if (existing) {
         existing.socketId = socket.id;
         delete existing.disconnectedAt;
+        if (existing.isHost) {
+          room.hostSocketId = socket.id;
+        }
         socket.join(code);
         socket.roomCode = code;
         socket.playerId = existing.id;
