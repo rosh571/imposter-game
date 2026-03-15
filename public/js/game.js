@@ -31,12 +31,16 @@ if (!roomCode || !pid || !playerName) {
 // Reconnect to room — server will resend role + game state
 socket.emit('join-room', { pid, code: roomCode, name: playerName });
 
-socket.on('role-assigned', ({ role, word }) => {
+socket.on('role-assigned', ({ role, word, hint }) => {
   if (role === 'imposter') {
     roleCard.classList.add('imposter');
     roleLabel.textContent = 'You are the';
     roleWord.textContent = 'IMPOSTER';
-    roleHint.textContent = "You don't know the word. Blend in!";
+    if (hint) {
+      roleHint.innerHTML = 'Your hint: <strong>' + hint.toUpperCase() + '</strong>';
+    } else {
+      roleHint.textContent = "You don't know the word. Blend in!";
+    }
   } else {
     roleCard.classList.remove('imposter');
     roleLabel.textContent = 'The secret word is';

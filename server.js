@@ -35,6 +35,34 @@ const WORDS = {
 
 const ALL_WORDS = Object.values(WORDS).flat();
 
+// ── Hint Words (one thematic hint per word for the imposter) ──
+const HINT_WORDS = {
+  // animals
+  elephant: 'trunk', penguin: 'iceberg', dolphin: 'coral', giraffe: 'savanna', octopus: 'tentacle',
+  chameleon: 'camouflage', kangaroo: 'pouch', flamingo: 'pink', porcupine: 'quill', cheetah: 'sprint',
+  // food
+  pizza: 'oven', sushi: 'chopsticks', tacos: 'salsa', pancakes: 'syrup', lasagna: 'layers',
+  croissant: 'bakery', dumpling: 'steamer', burrito: 'wrap', pretzel: 'salt', waffles: 'brunch',
+  // places
+  library: 'shelves', airport: 'runway', casino: 'jackpot', museum: 'exhibit', lighthouse: 'beacon',
+  volcano: 'eruption', waterfall: 'cliff', pyramid: 'pharaoh', subway: 'tunnel', stadium: 'crowd',
+  // objects
+  umbrella: 'raincoat', telescope: 'stargazing', trampoline: 'bounce', chandelier: 'ceiling', backpack: 'hiking',
+  keyboard: 'typing', hammock: 'nap', microphone: 'stage', compass: 'north', lantern: 'glow',
+  // jobs
+  astronaut: 'spacesuit', detective: 'clue', lifeguard: 'whistle', magician: 'wand', surgeon: 'scalpel',
+  pilot: 'cockpit', bartender: 'cocktail', firefighter: 'hose', architect: 'blueprint', mechanic: 'wrench',
+  // movies
+  titanic: 'iceberg', jaws: 'shark', inception: 'dream', avatar: 'alien', gladiator: 'arena',
+  frozen: 'snowflake', matrix: 'glitch', rocky: 'boxing', shrek: 'swamp', interstellar: 'wormhole',
+  // activities
+  surfing: 'wave', karaoke: 'lyrics', skydiving: 'parachute', bowling: 'alley', camping: 'tent',
+  snorkeling: 'reef', yoga: 'stretch', paintball: 'splatter', fishing: 'bait', gardening: 'soil',
+  // vehicles
+  helicopter: 'rotor', submarine: 'periscope', motorcycle: 'helmet', sailboat: 'wind', bulldozer: 'demolition',
+  ambulance: 'siren', limousine: 'chauffeur', skateboard: 'ramp', canoe: 'paddle', tractor: 'harvest'
+};
+
 // ── Room Management ────────────────────────────────────────
 const rooms = new Map();
 
@@ -71,7 +99,7 @@ function sendRoleToPlayer(room, player) {
   const sock = io.sockets.sockets.get(player.socketId);
   if (!sock) return;
   if (player.id === room.imposterId) {
-    sock.emit('role-assigned', { role: 'imposter', word: null });
+    sock.emit('role-assigned', { role: 'imposter', word: null, hint: HINT_WORDS[room.currentWord] });
   } else {
     sock.emit('role-assigned', { role: 'normal', word: room.currentWord });
   }

@@ -268,6 +268,11 @@ input[type="text"]::placeholder {
 .role-card.imposter .role-word {
   color: var(--danger);
 }
+.role-card.imposter .hint strong {
+  color: var(--danger);
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+}
 
 /* Vote Buttons */
 .vote-buttons {
