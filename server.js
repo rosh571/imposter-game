@@ -24,46 +24,44 @@ app.get('/join/:code', (req, res) => {
 // ── Word List ──────────────────────────────────────────────
 const WORDS = {
   animals: [
-    'platypus', 'axolotl', 'pangolin', 'narwhal', 'capybara', 'quokka', 'okapi',
-    'wolverine', 'manatee', 'armadillo', 'chinchilla', 'komodo', 'lemur', 'ibex', 'jackal'
+    'penguin', 'dolphin', 'octopus', 'chameleon', 'flamingo', 'porcupine', 'wolverine',
+    'armadillo', 'narwhal', 'platypus', 'pelican', 'scorpion', 'panther', 'raccoon', 'buffalo'
   ],
   food: [
-    'gnocchi', 'tempura', 'ceviche', 'risotto', 'kimchi', 'brioche', 'gazpacho',
-    'prosciutto', 'tiramisu', 'falafel', 'poutine', 'ratatouille', 'baklava', 'mochi', 'edamame'
+    'pancakes', 'lasagna', 'croissant', 'burrito', 'pretzel', 'waffles', 'tiramisu',
+    'falafel', 'kimchi', 'risotto', 'tempura', 'meatloaf', 'guacamole', 'cheesecake', 'quesadilla'
   ],
   places: [
-    'catacombs', 'fjord', 'bazaar', 'archipelago', 'colosseum', 'kremlin', 'oasis',
-    'pagoda', 'citadel', 'minaret', 'boardwalk', 'observatory', 'plantation', 'quarry', 'ravine'
+    'lighthouse', 'volcano', 'waterfall', 'pyramid', 'stadium', 'casino', 'museum',
+    'cathedral', 'boardwalk', 'canyon', 'glacier', 'plantation', 'observatory', 'dungeon', 'colosseum'
   ],
   objects: [
-    'kaleidoscope', 'metronome', 'sextant', 'gramophone', 'abacus', 'stethoscope',
-    'periscope', 'theremin', 'sundial', 'astrolabe', 'bellows', 'gyroscope', 'monocle', 'pendulum', 'prism'
+    'telescope', 'trampoline', 'chandelier', 'microphone', 'compass', 'lantern', 'stethoscope',
+    'binoculars', 'hourglass', 'megaphone', 'typewriter', 'metronome', 'periscope', 'kaleidoscope', 'sundial'
   ],
   jobs: [
-    'taxidermist', 'cartographer', 'sommelier', 'locksmith', 'coroner', 'blacksmith',
-    'auctioneer', 'stenographer', 'midwife', 'chimneysweep', 'lumberjack', 'geologist',
-    'puppeteer', 'falconer', 'curator'
+    'astronaut', 'detective', 'lifeguard', 'magician', 'surgeon', 'bartender', 'blacksmith',
+    'locksmith', 'lumberjack', 'puppeteer', 'auctioneer', 'pharmacist', 'electrician', 'translator', 'jeweler'
   ],
   movies: [
-    'memento', 'zodiac', 'arrival', 'whiplash', 'amelie', 'oldboy', 'vertigo',
-    'moonlight', 'parasite', 'casablanca', 'psycho', 'rashomon', 'stalker', 'dunkirk', 'tenet'
+    'titanic', 'jaws', 'inception', 'gladiator', 'frozen', 'matrix', 'interstellar',
+    'parasite', 'whiplash', 'dunkirk', 'zodiac', 'vertigo', 'arrival', 'gravity', 'ratatouille'
   ],
   activities: [
-    'fencing', 'parkour', 'taxidermy', 'falconry', 'calligraphy', 'orienteering',
-    'beekeeping', 'glassblowing', 'spelunking', 'foraging', 'whittling', 'stargazing',
-    'geocaching', 'blacksmithing', 'bouldering'
+    'surfing', 'karaoke', 'skydiving', 'bowling', 'snorkeling', 'fencing', 'parkour',
+    'bouldering', 'stargazing', 'beekeeping', 'archery', 'skateboarding', 'juggling', 'pottery', 'woodworking'
   ],
   vehicles: [
-    'zeppelin', 'gondola', 'hovercraft', 'rickshaw', 'catamaran', 'bobsled',
-    'chariot', 'dirigible', 'sampan', 'funicular', 'dragster', 'kayak', 'trolley', 'triplane', 'schooner'
+    'helicopter', 'submarine', 'motorcycle', 'sailboat', 'bulldozer', 'ambulance', 'gondola',
+    'hovercraft', 'bobsled', 'chariot', 'kayak', 'trolley', 'steamship', 'jetski', 'rickshaw'
   ],
   science: [
-    'centrifuge', 'nebula', 'isotope', 'tectonic', 'genome', 'quasar', 'enzyme',
-    'photon', 'catalyst', 'prion', 'osmosis', 'mitosis', 'synapse', 'entropy', 'magnetar'
+    'volcano', 'tornado', 'glacier', 'asteroid', 'eclipse', 'tsunami', 'earthquake',
+    'avalanche', 'dinosaur', 'bacteria', 'skeleton', 'satellite', 'telescope', 'magnet', 'fossil'
   ],
   mythology: [
-    'minotaur', 'valkyrie', 'cerberus', 'phoenix', 'kraken', 'banshee', 'chimera',
-    'griffin', 'hydra', 'sphinx', 'cyclops', 'medusa', 'centaur', 'gargoyle', 'wendigo'
+    'phoenix', 'kraken', 'dragon', 'unicorn', 'werewolf', 'mermaid', 'vampire',
+    'griffin', 'cyclops', 'medusa', 'centaur', 'minotaur', 'banshee', 'gargoyle', 'pegasus'
   ]
 };
 
@@ -72,45 +70,45 @@ const ALL_WORDS = Object.values(WORDS).flat();
 // ── Hint Words (one thematic hint per word for the imposter) ──
 const HINT_WORDS = {
   // animals
-  platypus: 'beak', axolotl: 'gills', pangolin: 'scales', narwhal: 'tusk', capybara: 'rodent',
-  quokka: 'smile', okapi: 'stripes', wolverine: 'claws', manatee: 'seagrass', armadillo: 'shell',
-  chinchilla: 'fur', komodo: 'venom', lemur: 'madagascar', ibex: 'horns', jackal: 'scavenger',
+  penguin: 'iceberg', dolphin: 'coral', octopus: 'tentacle', chameleon: 'camouflage', flamingo: 'pink',
+  porcupine: 'quill', wolverine: 'claws', armadillo: 'shell', narwhal: 'tusk', platypus: 'beak',
+  pelican: 'pouch', scorpion: 'sting', panther: 'jungle', raccoon: 'mask', buffalo: 'stampede',
   // food
-  gnocchi: 'potato', tempura: 'batter', ceviche: 'lime', risotto: 'arborio', kimchi: 'fermented',
-  brioche: 'butter', gazpacho: 'cold', prosciutto: 'cured', tiramisu: 'espresso', falafel: 'chickpea',
-  poutine: 'gravy', ratatouille: 'vegetables', baklava: 'phyllo', mochi: 'sticky', edamame: 'soybean',
+  pancakes: 'syrup', lasagna: 'layers', croissant: 'bakery', burrito: 'wrap', pretzel: 'salt',
+  waffles: 'brunch', tiramisu: 'espresso', falafel: 'chickpea', kimchi: 'fermented', risotto: 'creamy',
+  tempura: 'batter', meatloaf: 'ketchup', guacamole: 'avocado', cheesecake: 'crust', quesadilla: 'melted',
   // places
-  catacombs: 'skulls', fjord: 'glacier', bazaar: 'haggle', archipelago: 'islands', colosseum: 'gladiator',
-  kremlin: 'moscow', oasis: 'desert', pagoda: 'temple', citadel: 'fortress', minaret: 'mosque',
-  boardwalk: 'pier', observatory: 'dome', plantation: 'crops', quarry: 'stone', ravine: 'gorge',
+  lighthouse: 'beacon', volcano: 'eruption', waterfall: 'cliff', pyramid: 'pharaoh', stadium: 'crowd',
+  casino: 'jackpot', museum: 'exhibit', cathedral: 'stained', boardwalk: 'pier', canyon: 'deep',
+  glacier: 'frozen', plantation: 'crops', observatory: 'dome', dungeon: 'chains', colosseum: 'gladiator',
   // objects
-  kaleidoscope: 'patterns', metronome: 'tempo', sextant: 'navigation', gramophone: 'vinyl', abacus: 'beads',
-  stethoscope: 'heartbeat', periscope: 'submarine', theremin: 'antenna', sundial: 'shadow', astrolabe: 'celestial',
-  bellows: 'forge', gyroscope: 'spin', monocle: 'lens', pendulum: 'swing', prism: 'rainbow',
+  telescope: 'stargazing', trampoline: 'bounce', chandelier: 'ceiling', microphone: 'stage', compass: 'north',
+  lantern: 'glow', stethoscope: 'heartbeat', binoculars: 'distant', hourglass: 'sand', megaphone: 'loud',
+  typewriter: 'keys', metronome: 'tempo', periscope: 'submarine', kaleidoscope: 'patterns', sundial: 'shadow',
   // jobs
-  taxidermist: 'mounted', cartographer: 'maps', sommelier: 'wine', locksmith: 'keys', coroner: 'autopsy',
-  blacksmith: 'anvil', auctioneer: 'gavel', stenographer: 'shorthand', midwife: 'delivery', chimneysweep: 'soot',
-  lumberjack: 'timber', geologist: 'rocks', puppeteer: 'strings', falconer: 'hawk', curator: 'gallery',
+  astronaut: 'spacesuit', detective: 'clue', lifeguard: 'whistle', magician: 'wand', surgeon: 'scalpel',
+  bartender: 'cocktail', blacksmith: 'anvil', locksmith: 'keys', lumberjack: 'timber', puppeteer: 'strings',
+  auctioneer: 'gavel', pharmacist: 'pills', electrician: 'wiring', translator: 'language', jeweler: 'gems',
   // movies
-  memento: 'backwards', zodiac: 'cipher', arrival: 'linguistics', whiplash: 'drums', amelie: 'paris',
-  oldboy: 'revenge', vertigo: 'heights', moonlight: 'chapters', parasite: 'basement', casablanca: 'piano',
-  psycho: 'shower', rashomon: 'testimony', stalker: 'zone', dunkirk: 'evacuation', tenet: 'inversion',
+  titanic: 'iceberg', jaws: 'shark', inception: 'dream', gladiator: 'arena', frozen: 'snowflake',
+  matrix: 'glitch', interstellar: 'wormhole', parasite: 'basement', whiplash: 'drums', dunkirk: 'evacuation',
+  zodiac: 'cipher', vertigo: 'heights', arrival: 'aliens', gravity: 'orbit', ratatouille: 'chef',
   // activities
-  fencing: 'foil', parkour: 'rooftop', taxidermy: 'preservation', falconry: 'raptor', calligraphy: 'ink',
-  orienteering: 'compass', beekeeping: 'hive', glassblowing: 'furnace', spelunking: 'cave', foraging: 'mushroom',
-  whittling: 'knife', stargazing: 'constellation', geocaching: 'coordinates', blacksmithing: 'anvil', bouldering: 'chalk',
+  surfing: 'wave', karaoke: 'lyrics', skydiving: 'parachute', bowling: 'alley', snorkeling: 'reef',
+  fencing: 'sword', parkour: 'rooftop', bouldering: 'chalk', stargazing: 'constellation', beekeeping: 'hive',
+  archery: 'bullseye', skateboarding: 'ramp', juggling: 'toss', pottery: 'clay', woodworking: 'chisel',
   // vehicles
-  zeppelin: 'hydrogen', gondola: 'venice', hovercraft: 'cushion', rickshaw: 'pedal', catamaran: 'hull',
-  bobsled: 'ice', chariot: 'horses', dirigible: 'airship', sampan: 'river', funicular: 'cable',
-  dragster: 'nitro', kayak: 'paddle', trolley: 'tracks', triplane: 'wings', schooner: 'mast',
+  helicopter: 'rotor', submarine: 'torpedo', motorcycle: 'helmet', sailboat: 'wind', bulldozer: 'demolition',
+  ambulance: 'siren', gondola: 'venice', hovercraft: 'cushion', bobsled: 'ice', chariot: 'horses',
+  kayak: 'paddle', trolley: 'tracks', steamship: 'funnel', jetski: 'splash', rickshaw: 'pedal',
   // science
-  centrifuge: 'spin', nebula: 'dust', isotope: 'atom', tectonic: 'plates', genome: 'dna',
-  quasar: 'luminous', enzyme: 'protein', photon: 'light', catalyst: 'reaction', prion: 'misfolded',
-  osmosis: 'membrane', mitosis: 'division', synapse: 'neuron', entropy: 'disorder', magnetar: 'magnetic',
+  tornado: 'funnel', asteroid: 'crater', eclipse: 'shadow', tsunami: 'tidal', earthquake: 'fault',
+  avalanche: 'snow', dinosaur: 'fossil', bacteria: 'microscope', skeleton: 'bones', satellite: 'orbit',
+  magnet: 'attract', fossil: 'ancient',
   // mythology
-  minotaur: 'labyrinth', valkyrie: 'warrior', cerberus: 'threeheaded', phoenix: 'rebirth', kraken: 'tentacles',
-  banshee: 'wail', chimera: 'hybrid', griffin: 'eagle', hydra: 'regrow', sphinx: 'riddle',
-  cyclops: 'eye', medusa: 'stone', centaur: 'hooves', gargoyle: 'cathedral', wendigo: 'hunger'
+  phoenix: 'rebirth', kraken: 'tentacles', dragon: 'fire', unicorn: 'horn', werewolf: 'fullmoon',
+  mermaid: 'ocean', vampire: 'fangs', griffin: 'eagle', cyclops: 'eye', medusa: 'stone',
+  centaur: 'hooves', minotaur: 'labyrinth', banshee: 'wail', gargoyle: 'cathedral', pegasus: 'wings'
 };
 
 // ── Room Management ────────────────────────────────────────
