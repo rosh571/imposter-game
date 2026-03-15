@@ -14,6 +14,8 @@ const revealWord = document.getElementById('reveal-word');
 const voteSummary = document.getElementById('vote-summary');
 const newRoundBtn = document.getElementById('new-round-btn');
 const revealWait = document.getElementById('reveal-wait');
+const turnOrderCard = document.getElementById('turn-order-card');
+const turnOrderList = document.getElementById('turn-order-list');
 const errorMsg = document.getElementById('error-msg');
 
 const pid = sessionStorage.getItem('imposter-pid');
@@ -99,9 +101,24 @@ socket.on('round-reset', () => {
   window.location.href = '/lobby.html';
 });
 
-socket.on('game-started', () => {
-  // Already on game page
+socket.on('game-started', ({ turnOrder } = {}) => {
+  if (turnOrder) renderTurnOrder(turnOrder);
 });
+
+socket.on('turn-order', (turnOrder) => {
+  renderTurnOrder(turnOrder);
+});
+
+function renderTurnOrder(turnOrder) {
+  turnOrderCard.hidden = false;
+  turnOrderList.innerHTML = '';
+  turnOrder.forEach((p, i) => {
+    const li = document.createElement('li');
+    const isMe = p.id === pid;
+    li.innerHTML = `<span class="turn-number">${i + 1}</span><span class="turn-name${isMe ? ' turn-you' : ''}">${p.name}${isMe ? ' (you)' : ''}</span>`;
+    turnOrderList.appendChild(li);
+  });
+}
 
 revealBtn.addEventListener('click', () => {
   socket.emit('reveal-imposter');

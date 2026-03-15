@@ -274,6 +274,44 @@ input[type="text"]::placeholder {
   letter-spacing: 0.05em;
 }
 
+/* Turn Order */
+.turn-order-list {
+  list-style: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  counter-reset: none;
+}
+.turn-order-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+.turn-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.turn-name {
+  font-weight: 500;
+}
+.turn-you {
+  color: var(--success);
+  font-weight: 700;
+}
+
 /* Vote Buttons */
 .vote-buttons {
   width: 100%;

@@ -23,14 +23,48 @@ app.get('/join/:code', (req, res) => {
 
 // ── Word List ──────────────────────────────────────────────
 const WORDS = {
-  animals: ['elephant', 'penguin', 'dolphin', 'giraffe', 'octopus', 'chameleon', 'kangaroo', 'flamingo', 'porcupine', 'cheetah'],
-  food: ['pizza', 'sushi', 'tacos', 'pancakes', 'lasagna', 'croissant', 'dumpling', 'burrito', 'pretzel', 'waffles'],
-  places: ['library', 'airport', 'casino', 'museum', 'lighthouse', 'volcano', 'waterfall', 'pyramid', 'subway', 'stadium'],
-  objects: ['umbrella', 'telescope', 'trampoline', 'chandelier', 'backpack', 'keyboard', 'hammock', 'microphone', 'compass', 'lantern'],
-  jobs: ['astronaut', 'detective', 'lifeguard', 'magician', 'surgeon', 'pilot', 'bartender', 'firefighter', 'architect', 'mechanic'],
-  movies: ['titanic', 'jaws', 'inception', 'avatar', 'gladiator', 'frozen', 'matrix', 'rocky', 'shrek', 'interstellar'],
-  activities: ['surfing', 'karaoke', 'skydiving', 'bowling', 'camping', 'snorkeling', 'yoga', 'paintball', 'fishing', 'gardening'],
-  vehicles: ['helicopter', 'submarine', 'motorcycle', 'sailboat', 'bulldozer', 'ambulance', 'limousine', 'skateboard', 'canoe', 'tractor']
+  animals: [
+    'platypus', 'axolotl', 'pangolin', 'narwhal', 'capybara', 'quokka', 'okapi',
+    'wolverine', 'manatee', 'armadillo', 'chinchilla', 'komodo', 'lemur', 'ibex', 'jackal'
+  ],
+  food: [
+    'gnocchi', 'tempura', 'ceviche', 'risotto', 'kimchi', 'brioche', 'gazpacho',
+    'prosciutto', 'tiramisu', 'falafel', 'poutine', 'ratatouille', 'baklava', 'mochi', 'edamame'
+  ],
+  places: [
+    'catacombs', 'fjord', 'bazaar', 'archipelago', 'colosseum', 'kremlin', 'oasis',
+    'pagoda', 'citadel', 'minaret', 'boardwalk', 'observatory', 'plantation', 'quarry', 'ravine'
+  ],
+  objects: [
+    'kaleidoscope', 'metronome', 'sextant', 'gramophone', 'abacus', 'stethoscope',
+    'periscope', 'theremin', 'sundial', 'astrolabe', 'bellows', 'gyroscope', 'monocle', 'pendulum', 'prism'
+  ],
+  jobs: [
+    'taxidermist', 'cartographer', 'sommelier', 'locksmith', 'coroner', 'blacksmith',
+    'auctioneer', 'stenographer', 'midwife', 'chimneysweep', 'lumberjack', 'geologist',
+    'puppeteer', 'falconer', 'curator'
+  ],
+  movies: [
+    'memento', 'zodiac', 'arrival', 'whiplash', 'amelie', 'oldboy', 'vertigo',
+    'moonlight', 'parasite', 'casablanca', 'psycho', 'rashomon', 'stalker', 'dunkirk', 'tenet'
+  ],
+  activities: [
+    'fencing', 'parkour', 'taxidermy', 'falconry', 'calligraphy', 'orienteering',
+    'beekeeping', 'glassblowing', 'spelunking', 'foraging', 'whittling', 'stargazing',
+    'geocaching', 'blacksmithing', 'bouldering'
+  ],
+  vehicles: [
+    'zeppelin', 'gondola', 'hovercraft', 'rickshaw', 'catamaran', 'bobsled',
+    'chariot', 'dirigible', 'sampan', 'funicular', 'dragster', 'kayak', 'trolley', 'triplane', 'schooner'
+  ],
+  science: [
+    'centrifuge', 'nebula', 'isotope', 'tectonic', 'genome', 'quasar', 'enzyme',
+    'photon', 'catalyst', 'prion', 'osmosis', 'mitosis', 'synapse', 'entropy', 'magnetar'
+  ],
+  mythology: [
+    'minotaur', 'valkyrie', 'cerberus', 'phoenix', 'kraken', 'banshee', 'chimera',
+    'griffin', 'hydra', 'sphinx', 'cyclops', 'medusa', 'centaur', 'gargoyle', 'wendigo'
+  ]
 };
 
 const ALL_WORDS = Object.values(WORDS).flat();
@@ -38,29 +72,45 @@ const ALL_WORDS = Object.values(WORDS).flat();
 // ── Hint Words (one thematic hint per word for the imposter) ──
 const HINT_WORDS = {
   // animals
-  elephant: 'trunk', penguin: 'iceberg', dolphin: 'coral', giraffe: 'savanna', octopus: 'tentacle',
-  chameleon: 'camouflage', kangaroo: 'pouch', flamingo: 'pink', porcupine: 'quill', cheetah: 'sprint',
+  platypus: 'beak', axolotl: 'gills', pangolin: 'scales', narwhal: 'tusk', capybara: 'rodent',
+  quokka: 'smile', okapi: 'stripes', wolverine: 'claws', manatee: 'seagrass', armadillo: 'shell',
+  chinchilla: 'fur', komodo: 'venom', lemur: 'madagascar', ibex: 'horns', jackal: 'scavenger',
   // food
-  pizza: 'oven', sushi: 'chopsticks', tacos: 'salsa', pancakes: 'syrup', lasagna: 'layers',
-  croissant: 'bakery', dumpling: 'steamer', burrito: 'wrap', pretzel: 'salt', waffles: 'brunch',
+  gnocchi: 'potato', tempura: 'batter', ceviche: 'lime', risotto: 'arborio', kimchi: 'fermented',
+  brioche: 'butter', gazpacho: 'cold', prosciutto: 'cured', tiramisu: 'espresso', falafel: 'chickpea',
+  poutine: 'gravy', ratatouille: 'vegetables', baklava: 'phyllo', mochi: 'sticky', edamame: 'soybean',
   // places
-  library: 'shelves', airport: 'runway', casino: 'jackpot', museum: 'exhibit', lighthouse: 'beacon',
-  volcano: 'eruption', waterfall: 'cliff', pyramid: 'pharaoh', subway: 'tunnel', stadium: 'crowd',
+  catacombs: 'skulls', fjord: 'glacier', bazaar: 'haggle', archipelago: 'islands', colosseum: 'gladiator',
+  kremlin: 'moscow', oasis: 'desert', pagoda: 'temple', citadel: 'fortress', minaret: 'mosque',
+  boardwalk: 'pier', observatory: 'dome', plantation: 'crops', quarry: 'stone', ravine: 'gorge',
   // objects
-  umbrella: 'raincoat', telescope: 'stargazing', trampoline: 'bounce', chandelier: 'ceiling', backpack: 'hiking',
-  keyboard: 'typing', hammock: 'nap', microphone: 'stage', compass: 'north', lantern: 'glow',
+  kaleidoscope: 'patterns', metronome: 'tempo', sextant: 'navigation', gramophone: 'vinyl', abacus: 'beads',
+  stethoscope: 'heartbeat', periscope: 'submarine', theremin: 'antenna', sundial: 'shadow', astrolabe: 'celestial',
+  bellows: 'forge', gyroscope: 'spin', monocle: 'lens', pendulum: 'swing', prism: 'rainbow',
   // jobs
-  astronaut: 'spacesuit', detective: 'clue', lifeguard: 'whistle', magician: 'wand', surgeon: 'scalpel',
-  pilot: 'cockpit', bartender: 'cocktail', firefighter: 'hose', architect: 'blueprint', mechanic: 'wrench',
+  taxidermist: 'mounted', cartographer: 'maps', sommelier: 'wine', locksmith: 'keys', coroner: 'autopsy',
+  blacksmith: 'anvil', auctioneer: 'gavel', stenographer: 'shorthand', midwife: 'delivery', chimneysweep: 'soot',
+  lumberjack: 'timber', geologist: 'rocks', puppeteer: 'strings', falconer: 'hawk', curator: 'gallery',
   // movies
-  titanic: 'iceberg', jaws: 'shark', inception: 'dream', avatar: 'alien', gladiator: 'arena',
-  frozen: 'snowflake', matrix: 'glitch', rocky: 'boxing', shrek: 'swamp', interstellar: 'wormhole',
+  memento: 'backwards', zodiac: 'cipher', arrival: 'linguistics', whiplash: 'drums', amelie: 'paris',
+  oldboy: 'revenge', vertigo: 'heights', moonlight: 'chapters', parasite: 'basement', casablanca: 'piano',
+  psycho: 'shower', rashomon: 'testimony', stalker: 'zone', dunkirk: 'evacuation', tenet: 'inversion',
   // activities
-  surfing: 'wave', karaoke: 'lyrics', skydiving: 'parachute', bowling: 'alley', camping: 'tent',
-  snorkeling: 'reef', yoga: 'stretch', paintball: 'splatter', fishing: 'bait', gardening: 'soil',
+  fencing: 'foil', parkour: 'rooftop', taxidermy: 'preservation', falconry: 'raptor', calligraphy: 'ink',
+  orienteering: 'compass', beekeeping: 'hive', glassblowing: 'furnace', spelunking: 'cave', foraging: 'mushroom',
+  whittling: 'knife', stargazing: 'constellation', geocaching: 'coordinates', blacksmithing: 'anvil', bouldering: 'chalk',
   // vehicles
-  helicopter: 'rotor', submarine: 'periscope', motorcycle: 'helmet', sailboat: 'wind', bulldozer: 'demolition',
-  ambulance: 'siren', limousine: 'chauffeur', skateboard: 'ramp', canoe: 'paddle', tractor: 'harvest'
+  zeppelin: 'hydrogen', gondola: 'venice', hovercraft: 'cushion', rickshaw: 'pedal', catamaran: 'hull',
+  bobsled: 'ice', chariot: 'horses', dirigible: 'airship', sampan: 'river', funicular: 'cable',
+  dragster: 'nitro', kayak: 'paddle', trolley: 'tracks', triplane: 'wings', schooner: 'mast',
+  // science
+  centrifuge: 'spin', nebula: 'dust', isotope: 'atom', tectonic: 'plates', genome: 'dna',
+  quasar: 'luminous', enzyme: 'protein', photon: 'light', catalyst: 'reaction', prion: 'misfolded',
+  osmosis: 'membrane', mitosis: 'division', synapse: 'neuron', entropy: 'disorder', magnetar: 'magnetic',
+  // mythology
+  minotaur: 'labyrinth', valkyrie: 'warrior', cerberus: 'threeheaded', phoenix: 'rebirth', kraken: 'tentacles',
+  banshee: 'wail', chimera: 'hybrid', griffin: 'eagle', hydra: 'regrow', sphinx: 'riddle',
+  cyclops: 'eye', medusa: 'stone', centaur: 'hooves', gargoyle: 'cathedral', wendigo: 'hunger'
 };
 
 // ── Room Management ────────────────────────────────────────
@@ -81,6 +131,15 @@ function pickWord(room) {
   if (available.length === 0) room.usedWords.clear();
   const pool = available.length > 0 ? available : ALL_WORDS;
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function getPlayer(room, pid) {
@@ -176,6 +235,7 @@ io.on('connection', (socket) => {
       // Resend game state if in progress
       if (room.state === 'PLAYING') {
         sendRoleToPlayer(room, existing);
+        if (room.turnOrder) socket.emit('turn-order', room.turnOrder);
         socket.emit('vote-update', computeVoteTallies(room));
       } else if (room.state === 'REVEAL') {
         // Resend reveal data
@@ -230,12 +290,15 @@ io.on('connection', (socket) => {
     const imposterIndex = Math.floor(Math.random() * room.players.length);
     room.imposterId = room.players[imposterIndex].id;
 
+    // Random turn order — imposter can go first, totally random
+    room.turnOrder = shuffle(room.players).map(p => ({ id: p.id, name: p.name }));
+
     // Send roles individually
     for (const player of room.players) {
       sendRoleToPlayer(room, player);
     }
 
-    io.to(room.code).emit('game-started');
+    io.to(room.code).emit('game-started', { turnOrder: room.turnOrder });
   });
 
   socket.on('cast-vote', (targetId) => {
